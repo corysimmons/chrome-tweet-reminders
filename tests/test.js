@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// test.js — Integration tests for RemindMe Chrome extension using Puppeteer (CDP)
+// test.js — Integration tests for Chrome Tweet Reminders using Puppeteer (CDP)
 //
 // Run: cd tests && npm install && npm test
 //
@@ -147,7 +147,7 @@ async function run() {
     });
 
     assert(alarm, 'Alarm "check-reminders" not found');
-    assert(alarm.periodInMinutes === 30, `Alarm period should be 30, got ${alarm.periodInMinutes}`);
+    assert(alarm.periodInMinutes === 1, `Alarm period should be 1, got ${alarm.periodInMinutes}`);
   });
 
   // ----- Test Group: Storage -----

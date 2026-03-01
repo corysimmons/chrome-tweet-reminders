@@ -1,4 +1,4 @@
-// popup.js — Dashboard logic for RemindMe extension popup
+// popup.js — Dashboard logic for Chrome Tweet Reminders popup
 
 document.addEventListener('DOMContentLoaded', () => {
   loadReminders();
@@ -122,7 +122,7 @@ async function exportReminders() {
 
   const a = document.createElement('a');
   a.href = url;
-  a.download = `remindme-export-${new Date().toISOString().split('T')[0]}.json`;
+  a.download = `tweet-reminders-export-${new Date().toISOString().split('T')[0]}.json`;
   a.click();
 
   URL.revokeObjectURL(url);

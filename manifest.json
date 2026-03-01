@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "RemindMe of This Tweet",
+  "name": "Chrome Tweet Reminders",
   "description": "Set reminders on any tweet. No account needed. Reminders sync across devices via your Google account.",
   "version": "1.0.0",
   "permissions": ["storage", "alarms", "notifications"],

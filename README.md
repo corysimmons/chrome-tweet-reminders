@@ -1,4 +1,4 @@
-# RemindMe of This Tweet
+# Chrome Tweet Reminders
 
 A Chrome extension that adds a "Remind me" button to every tweet on X (formerly Twitter). Set reminders and get desktop notifications when it's time to revisit a tweet. No accounts, no servers, no API keys — everything runs locally in your browser.
 
@@ -23,8 +23,8 @@ A Chrome extension that adds a "Remind me" button to every tweet on X (formerly 
 
 1. Clone or download this repository:
    ```bash
-   git clone https://github.com/user/chrome-reminders.git
-   cd chrome-reminders
+   git clone https://github.com/user/chrome-tweet-reminders.git
+   cd chrome-tweet-reminders
    ```
 
 2. Generate the extension icons (requires Node.js):
@@ -36,7 +36,7 @@ A Chrome extension that adds a "Remind me" button to every tweet on X (formerly 
 
 4. Enable **Developer mode** (toggle in the top-right corner)
 
-5. Click **Load unpacked** and select the `chrome-reminders` directory
+5. Click **Load unpacked** and select the `chrome-tweet-reminders` directory
 
 6. Navigate to [x.com](https://x.com) — you should see bell icons on every tweet
 
@@ -69,7 +69,7 @@ A Chrome extension that adds a "Remind me" button to every tweet on X (formerly 
 
 ### Managing reminders
 
-1. Click the RemindMe extension icon in Chrome's toolbar
+1. Click the Chrome Tweet Reminders extension icon in Chrome's toolbar
 2. The popup shows all pending reminders sorted by due date:
    - **Author handle** and **relative time** ("in 3 days")
    - **Tweet text preview** (truncated)
@@ -104,7 +104,7 @@ A Chrome extension that adds a "Remind me" button to every tweet on X (formerly 
 │  Service worker (background.js)                  │
 │                                                  │
 │  Stores reminder in chrome.storage.sync          │
-│  chrome.alarms fires every 30 minutes            │
+│  chrome.alarms fires every minute            │
 │       ↓                                          │
 │  On alarm: check all reminders vs. current time  │
 │       ↓                                          │
@@ -135,7 +135,7 @@ A Chrome extension that adds a "Remind me" button to every tweet on X (formerly 
 
 ### Polling
 
-A `chrome.alarms` alarm fires every 30 minutes. When it fires, the service worker:
+A `chrome.alarms` alarm fires every 1 minute. When it fires, the service worker:
 
 1. Reads all reminders from storage
 2. Filters reminders where `reminderTime <= Date.now()`
@@ -157,7 +157,7 @@ A `chrome.alarms` alarm fires every 30 minutes. When it fires, the service worke
 ### Project structure
 
 ```
-chrome-reminders/
+chrome-tweet-reminders/
 ├── manifest.json       # Extension manifest (MV3)
 ├── background.js       # Service worker: alarms, notifications, storage
 ├── content.js          # Content script: button injection, popover UI
@@ -222,7 +222,7 @@ This creates simple bell-shaped PNG icons at 16x16, 48x48, and 128x128 using pur
 ## Known limitations
 
 - **X DOM changes**: X frequently changes their HTML structure. The content script uses `data-testid` selectors which are relatively stable but can break. If buttons stop appearing, the selectors in `content.js` may need updating.
-- **30-minute polling**: Reminders are checked every 30 minutes, so a reminder set for 2:05 PM might not fire until 2:30 PM. This is a tradeoff for battery/resource efficiency.
+- **1-minute polling**: Reminders are checked every minute (the MV3 minimum alarm interval), so notifications fire within ~1 minute of the scheduled time.
 - **Service worker lifecycle**: Chrome can kill the service worker at any time. All state is persisted in storage and the alarm wakes the worker back up.
 - **No mobile**: Chrome extensions don't run on mobile browsers.
 

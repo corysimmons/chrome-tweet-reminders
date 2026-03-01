@@ -1,5 +1,5 @@
 {
-  "name": "remindme-tests",
+  "name": "chrome-tweet-reminders-tests",
   "private": true,
   "scripts": {
     "test": "node test.js"

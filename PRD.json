@@ -1,5 +1,5 @@
 {
-  "name": "RemindMe of This Tweet",
+  "name": "Chrome Tweet Reminders",
   "tagline": "Set reminders on any tweet. No account needed.",
   "version": "1.0.0",
   "type": "chrome-extension",

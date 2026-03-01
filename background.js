@@ -1,8 +1,8 @@
-// background.js — Service worker for RemindMe of This Tweet
+// background.js — Service worker for Chrome Tweet Reminders
 // Handles alarms, notifications, storage management, and badge updates.
 
 const ALARM_NAME = 'check-reminders';
-const ALARM_INTERVAL_MINUTES = 30;
+const ALARM_INTERVAL_MINUTES = 1;
 const STORAGE_KEY = 'reminders';
 
 // --- Storage helpers ---
