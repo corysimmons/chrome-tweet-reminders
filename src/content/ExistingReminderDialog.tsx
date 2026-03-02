@@ -82,14 +82,15 @@ export function ExistingReminderDialog({
           >
             Change time
           </AlertDialogAction>
-          <AlertDialogAction
-            size="sm"
-            variant="destructive"
-            onClick={onCancel}
-          >
-            Cancel reminder
-          </AlertDialogAction>
         </AlertDialogFooter>
+        <AlertDialogAction
+          size="sm"
+          variant="destructive"
+          className="mx-auto"
+          onClick={onCancel}
+        >
+          Cancel reminder
+        </AlertDialogAction>
       </AlertDialogContent>
     </AlertDialog>
   );
