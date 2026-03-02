@@ -49,7 +49,11 @@ async function setReminder(
   try {
     await chrome.runtime.sendMessage({ type: "ADD_REMINDER", reminder });
     markButtonActive(buttonEl, reminderTime);
-    showToast("Reminder set!");
+    showToast({
+      authorHandle: tweetData.authorHandle,
+      tweetText: tweetData.tweetText,
+      reminderTime,
+    });
   } catch (err) {
     console.error("Failed to set reminder:", err);
     showToast("Failed to set reminder");
