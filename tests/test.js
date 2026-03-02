@@ -425,7 +425,7 @@ async function run() {
     const presetCount = await page.evaluate(() => {
       const host = document.getElementById('remindme-shadow-host');
       if (!host || !host.shadowRoot) return 0;
-      const buttons = host.shadowRoot.querySelectorAll('[data-slot="button"][data-variant="ghost"]');
+      const buttons = host.shadowRoot.querySelectorAll('[data-slot="button"][data-variant="outline"]');
       return buttons.length;
     });
     assertEqual(presetCount, 5, 'Should show 5 preset options');

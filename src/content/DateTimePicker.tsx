@@ -39,14 +39,14 @@ export function DateTimePicker({ onSetReminder, container }: DateTimePickerProps
   };
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="grid grid-cols-3 gap-1.5">
       <Popover>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             size="sm"
             className={cn(
-              "shrink-0 justify-start text-left font-normal text-xs h-8 px-2",
+              "w-full justify-center text-left font-normal text-xs h-8",
               !date && "text-muted-foreground"
             )}
           >
@@ -68,14 +68,14 @@ export function DateTimePicker({ onSetReminder, container }: DateTimePickerProps
         type="time"
         value={time}
         onChange={(e) => setTime(e.target.value)}
-        className="shrink-0 w-[100px] h-8 text-xs [color-scheme:dark]"
+        className="w-full h-8 text-xs [color-scheme:dark]"
       />
 
       <Button
         onClick={handleSet}
         size="sm"
         className={cn(
-          "h-8 text-xs rounded-full min-w-0 shrink",
+          "w-full h-8 text-xs rounded-full",
           error && "bg-destructive hover:bg-destructive/90"
         )}
       >

@@ -60,29 +60,25 @@ export function ReminderDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5">
           {presets.map((preset, i) => {
             const Icon = presetIcons[i] || Clock;
             return (
               <Button
                 key={preset.label}
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="justify-start gap-3 h-9 px-3 text-[13px] font-normal text-foreground hover:bg-primary/10 hover:text-primary"
+                className="h-9 text-xs font-normal text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/30"
                 onClick={() => handlePreset(preset)}
               >
-                <Icon className="size-4 text-muted-foreground" />
+                <Icon className="size-3.5 text-muted-foreground" />
                 {preset.label}
               </Button>
             );
           })}
         </div>
 
-        <div className="flex items-center gap-3">
-          <Separator className="flex-1" />
-          <span className="text-[11px] text-muted-foreground uppercase tracking-wider">custom</span>
-          <Separator className="flex-1" />
-        </div>
+        <Separator />
 
         <DateTimePicker onSetReminder={onSetReminder} container={container} />
       </DialogContent>
