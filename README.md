@@ -27,16 +27,17 @@ A Chrome extension that adds a "Remind me" button to every tweet on X (formerly 
    cd chrome-tweet-reminders
    ```
 
-2. Generate the extension icons (requires Node.js):
+2. Install dependencies and build:
    ```bash
-   node scripts/generate-icons.js
+   npm install
+   npm run build
    ```
 
 3. Open Chrome and navigate to `chrome://extensions/`
 
 4. Enable **Developer mode** (toggle in the top-right corner)
 
-5. Click **Load unpacked** and select the `chrome-tweet-reminders` directory
+5. Click **Load unpacked** and select the `dist/` directory
 
 6. Navigate to [x.com](https://x.com) — you should see bell icons on every tweet
 
@@ -154,35 +155,65 @@ A `chrome.alarms` alarm fires every 1 minute. When it fires, the service worker:
 
 ## Development
 
+### Tech stack
+
+- **Vite** — Build tool with three separate configs (popup, background, content)
+- **React 19** + **TypeScript** — UI components
+- **Tailwind CSS v4** + **shadcn/ui** — Styling and UI components
+- **Shadow DOM** — Content script UI isolation from X's page styles
+
 ### Project structure
 
 ```
 chrome-tweet-reminders/
-├── manifest.json       # Extension manifest (MV3)
-├── background.js       # Service worker: alarms, notifications, storage
-├── content.js          # Content script: button injection, popover UI
-├── content.css         # Styles for injected UI elements
-├── popup.html          # Extension popup dashboard
-├── popup.js            # Popup logic: list, delete, import/export
-├── popup.css           # Popup styles
-├── icons/              # Extension icons (generated)
-│   ├── icon16.png
-│   ├── icon48.png
-│   └── icon128.png
-├── scripts/
-│   └── generate-icons.js   # Pure Node.js icon generator
+├── src/
+│   ├── globals.css              # Tailwind + dark theme CSS vars
+│   ├── shared/
+│   │   ├── types.ts             # Reminder, MessageType, TweetData
+│   │   ├── presets.ts           # Time preset definitions
+│   │   └── format.ts            # formatRelativeTime
+│   ├── lib/utils.ts             # cn() for shadcn
+│   ├── components/ui/           # shadcn: button, card, dialog, calendar, etc.
+│   ├── background/index.ts      # Service worker
+│   ├── popup/
+│   │   ├── main.tsx             # React entry
+│   │   ├── App.tsx              # Popup app
+│   │   ├── ReminderCard.tsx     # Reminder card component
+│   │   └── EmptyState.tsx       # Empty state component
+│   └── content/
+│       ├── main.ts              # MutationObserver + bell button injection
+│       ├── extract.ts           # Tweet data extraction
+│       ├── dialog.tsx           # Shadow DOM mount/unmount
+│       ├── ReminderDialog.tsx   # Dialog with presets + DateTimePicker
+│       └── DateTimePicker.tsx   # Calendar + time input
+├── popup.html                   # Vite HTML entry
+├── public/
+│   ├── manifest.json            # Extension manifest (MV3)
+│   └── icons/                   # Extension icons
+├── vite.config.ts               # Popup build config
+├── vite.background.config.ts    # Background build config
+├── vite.content.config.ts       # Content script build config
 ├── tests/
-│   ├── test.js         # Integration tests (Puppeteer/CDP)
+│   ├── test.js                  # Integration tests (Puppeteer/CDP)
 │   └── package.json
-├── PRD.json            # Product requirements document
-└── README.md
+└── dist/                        # Built extension (load this in Chrome)
 ```
+
+### Building
+
+```bash
+npm install
+npm run build
+```
+
+This runs three Vite builds: popup (ES modules), background (IIFE), content script (IIFE with React + Tailwind).
 
 ### Running tests
 
 Tests use Puppeteer to launch a real Chrome instance with the extension loaded, then verify behavior via the Chrome DevTools Protocol.
 
 ```bash
+npm run build        # Build the extension first
 cd tests
 npm install
 npm test

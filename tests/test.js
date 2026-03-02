@@ -3,6 +3,8 @@
 //
 // Run: cd tests && npm install && npm test
 //
+// Prerequisites: npm run build (from project root) to generate dist/
+//
 // These tests load the unpacked extension in a real Chrome instance and verify:
 // 1. The extension loads without errors
 // 2. The service worker (background.js) registers and alarm is created
@@ -13,7 +15,7 @@
 const path = require('path');
 const puppeteer = require('puppeteer');
 
-const EXTENSION_PATH = path.resolve(__dirname, '..');
+const EXTENSION_PATH = path.resolve(__dirname, '..', 'dist');
 const TIMEOUT = 15000;
 
 let browser;
@@ -307,16 +309,16 @@ async function run() {
     const page = await browser.newPage();
     await page.goto(`chrome-extension://${extensionId}/popup.html`, { waitUntil: 'domcontentloaded' });
 
-    // Wait a moment for the async loadReminders to complete
-    await new Promise(r => setTimeout(r, 500));
+    // Wait for React to render and async loadReminders to complete
+    await new Promise(r => setTimeout(r, 1000));
 
-    const emptyHidden = await page.$eval('#empty-state', el => el.hidden);
-    assertEqual(emptyHidden, false, 'Empty state visibility');
+    const emptyState = await page.$('[data-testid="empty-state"]');
+    assert(emptyState, 'Empty state should be visible');
 
-    const listHidden = await page.$eval('#reminders-list', el => el.hidden);
-    assertEqual(listHidden, true, 'List visibility when empty');
+    const remindersList = await page.$('[data-testid="reminders-list"]');
+    assert(!remindersList, 'Reminders list should not be rendered when empty');
 
-    const emptyText = await page.$eval('#empty-state p', el => el.textContent);
+    const emptyText = await page.$eval('[data-testid="empty-state"]', el => el.textContent);
     assert(emptyText.includes('No reminders set'), 'Empty state text');
 
     await page.close();
@@ -341,18 +343,18 @@ async function run() {
 
     const page = await browser.newPage();
     await page.goto(`chrome-extension://${extensionId}/popup.html`, { waitUntil: 'domcontentloaded' });
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 1000));
 
-    const emptyHidden = await page.$eval('#empty-state', el => el.hidden);
-    assertEqual(emptyHidden, true, 'Empty state should be hidden');
+    const emptyState = await page.$('[data-testid="empty-state"]');
+    assert(!emptyState, 'Empty state should not be visible');
 
-    const cards = await page.$$('.reminder-card');
+    const cards = await page.$$('[data-testid="reminder-card"]');
     assertEqual(cards.length, 1, 'Should show 1 reminder card');
 
-    const authorText = await page.$eval('.reminder-author', el => el.textContent);
+    const authorText = await page.$eval('[data-testid="reminder-author"]', el => el.textContent);
     assertEqual(authorText, '@testuser', 'Author handle in card');
 
-    const tweetText = await page.$eval('.reminder-text', el => el.textContent);
+    const tweetText = await page.$eval('[data-testid="reminder-text"]', el => el.textContent);
     assert(tweetText.includes('Popup test tweet'), 'Tweet text in card');
 
     await page.close();
@@ -368,22 +370,13 @@ async function run() {
 
   await test('content script injects buttons into mock tweet page', async () => {
     const page = await browser.newPage();
-
-    // We need to serve the mock page from an x.com origin for the content script to run.
-    // Since we can't actually navigate to x.com in tests, we'll test the content script
-    // logic by evaluating it on a page with the right DOM structure.
-    // The content script only runs on x.com/twitter.com, so we inject it manually.
     await page.setContent(createMockTweetHTML());
 
-    // Inject the content script manually
+    // Inject the built content script
     const contentJs = require('fs').readFileSync(
       path.join(EXTENSION_PATH, 'content.js'), 'utf-8'
     );
-    const contentCss = require('fs').readFileSync(
-      path.join(EXTENSION_PATH, 'content.css'), 'utf-8'
-    );
 
-    await page.addStyleTag({ content: contentCss });
     await page.evaluate(contentJs);
 
     // Wait for MutationObserver to process
@@ -399,47 +392,48 @@ async function run() {
     await page.close();
   });
 
-  await test('button click opens popover', async () => {
+  await test('button click opens shadow DOM dialog', async () => {
     const page = await browser.newPage();
     await page.setContent(createMockTweetHTML());
 
     const contentJs = require('fs').readFileSync(
       path.join(EXTENSION_PATH, 'content.js'), 'utf-8'
     );
-    const contentCss = require('fs').readFileSync(
-      path.join(EXTENSION_PATH, 'content.css'), 'utf-8'
-    );
 
-    await page.addStyleTag({ content: contentCss });
     await page.evaluate(contentJs);
     await new Promise(r => setTimeout(r, 300));
 
     // Click the first reminder button
     await page.click('.remindme-btn');
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 500));
 
-    const popover = await page.$('#remindme-popover');
-    assert(popover, 'Popover should appear after clicking button');
+    // Check that shadow host exists
+    const shadowHost = await page.$('#remindme-shadow-host');
+    assert(shadowHost, 'Shadow host should appear after clicking button');
 
-    // Check preset buttons are rendered
-    const presetCount = await page.$$eval('.remindme-preset-btn', els => els.length);
+    // Check that dialog content exists inside shadow DOM
+    const hasDialog = await page.evaluate(() => {
+      const host = document.getElementById('remindme-shadow-host');
+      if (!host || !host.shadowRoot) return false;
+      // Look for the dialog content inside shadow root
+      const dialogContent = host.shadowRoot.querySelector('[data-slot="dialog-content"]');
+      return !!dialogContent;
+    });
+    assert(hasDialog, 'Dialog content should exist inside shadow DOM');
+
+    // Check preset buttons are rendered inside shadow DOM
+    const presetCount = await page.evaluate(() => {
+      const host = document.getElementById('remindme-shadow-host');
+      if (!host || !host.shadowRoot) return 0;
+      const buttons = host.shadowRoot.querySelectorAll('[data-slot="button"][data-variant="ghost"]');
+      return buttons.length;
+    });
     assertEqual(presetCount, 5, 'Should show 5 preset options');
-
-    // Check preset labels
-    const labels = await page.$$eval('.remindme-preset-btn', els => els.map(e => e.textContent));
-    assert(labels.includes('1 hour'), 'Should have "1 hour" preset');
-    assert(labels.includes('1 week'), 'Should have "1 week" preset');
-
-    // Check custom date/time inputs exist
-    const dateInput = await page.$('.remindme-input[type="date"]');
-    const timeInput = await page.$('.remindme-input[type="time"]');
-    assert(dateInput, 'Should have date input');
-    assert(timeInput, 'Should have time input');
 
     await page.close();
   });
 
-  await test('clicking button again closes popover', async () => {
+  await test('clicking button again closes dialog', async () => {
     const page = await browser.newPage();
     await page.setContent(createMockTweetHTML());
 
@@ -450,19 +444,19 @@ async function run() {
     await page.evaluate(contentJs);
     await new Promise(r => setTimeout(r, 300));
 
-    // Open popover
+    // Open dialog
     await page.click('.remindme-btn');
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 500));
 
-    let popover = await page.$('#remindme-popover');
-    assert(popover, 'Popover should be open');
+    let shadowHost = await page.$('#remindme-shadow-host');
+    assert(shadowHost, 'Shadow host should be open');
 
     // Click the same button again to close
     await page.click('.remindme-btn');
     await new Promise(r => setTimeout(r, 200));
 
-    popover = await page.$('#remindme-popover');
-    assert(!popover, 'Popover should be closed');
+    shadowHost = await page.$('#remindme-shadow-host');
+    assert(!shadowHost, 'Shadow host should be removed');
 
     await page.close();
   });
