@@ -4,6 +4,7 @@ import {
   Sunrise,
   CalendarDays,
   CalendarRange,
+  CalendarClock,
 } from "lucide-react";
 import {
   Dialog,
@@ -19,7 +20,7 @@ import { getPresets } from "@/shared/presets";
 import type { TweetData } from "@/shared/types";
 import { DateTimePicker } from "./DateTimePicker";
 
-const presetIcons = [Clock, Clock4, Sunrise, CalendarDays, CalendarRange];
+const presetIcons = [Clock, Clock4, Sunrise, CalendarDays, CalendarClock, CalendarRange];
 
 interface ReminderDialogProps {
   open: boolean;
@@ -68,10 +69,14 @@ export function ReminderDialog({
                 key={preset.label}
                 variant="outline"
                 size="sm"
-                className="h-9 text-xs font-normal text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                className={
+                  preset.isDefault
+                    ? "h-9 text-xs font-normal bg-primary/10 text-primary border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                    : "h-9 text-xs font-normal text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                }
                 onClick={() => handlePreset(preset)}
               >
-                <Icon className="size-3.5 text-muted-foreground" />
+                <Icon className={preset.isDefault ? "size-3.5 text-primary" : "size-3.5 text-muted-foreground"} />
                 {preset.label}
               </Button>
             );

@@ -4,6 +4,40 @@ import { AlertDialog as AlertDialogPrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
+// Radix validates AlertDialogTitle via document.getElementById which can't see
+// into shadow DOM. This hook places a hidden shim in document.body with the
+// same ID so the check passes. The callback ref fires before Radix's useEffect.
+function useShadowDomShim(container?: HTMLElement | null) {
+  const shimRef = React.useRef<HTMLSpanElement | null>(null)
+
+  const ref = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      shimRef.current?.remove()
+      shimRef.current = null
+      if (!node || !container) return
+
+      const titleId = node.getAttribute("aria-labelledby")
+      if (!titleId || document.getElementById(titleId)) return
+
+      const shim = document.createElement("span")
+      shim.id = titleId
+      shim.hidden = true
+      document.body.appendChild(shim)
+      shimRef.current = shim
+    },
+    [container]
+  )
+
+  React.useEffect(() => {
+    return () => {
+      shimRef.current?.remove()
+      shimRef.current = null
+    }
+  }, [])
+
+  return ref
+}
+
 function AlertDialog({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
@@ -54,10 +88,13 @@ function AlertDialogContent({
   size?: "default" | "sm"
   container?: HTMLElement | null
 }) {
+  const shimRef = useShadowDomShim(container)
+
   return (
     <AlertDialogPortal container={container}>
       <AlertDialogOverlay />
       <AlertDialogPrimitive.Content
+        ref={shimRef}
         data-slot="alert-dialog-content"
         data-size={size}
         className={cn(
