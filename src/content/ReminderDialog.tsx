@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { getPresets } from "@/shared/presets";
@@ -47,11 +48,15 @@ export function ReminderDialog({
       <DialogContent container={container} className="bg-card border-border max-w-[340px] gap-3 p-5 overflow-hidden">
         <DialogHeader className="gap-1 min-w-0">
           <DialogTitle className="text-base">Set a reminder</DialogTitle>
-          <DialogDescription className="truncate text-xs">
-            {tweetData.authorHandle}
-            {tweetData.tweetText && (
-              <span className="text-muted-foreground/60"> — {tweetData.tweetText}</span>
-            )}
+          <DialogDescription asChild>
+            <div className="text-xs text-muted-foreground">
+              <span>{tweetData.authorHandle}</span>
+              {tweetData.tweetText && (
+                <ScrollArea className="mt-1 max-h-[3.75rem]">
+                  <p className="text-muted-foreground/60 leading-relaxed">{tweetData.tweetText}</p>
+                </ScrollArea>
+              )}
+            </div>
           </DialogDescription>
         </DialogHeader>
 
