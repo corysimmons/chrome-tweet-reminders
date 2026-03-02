@@ -96,9 +96,10 @@ export function showToast(info: ToastInfo | string) {
     return;
   }
 
-  toast.custom(() => (
+  toast.custom((id) => (
     <div
       style={{
+        position: "relative",
         display: "flex",
         alignItems: "flex-start",
         gap: "10px",
@@ -115,6 +116,30 @@ export function showToast(info: ToastInfo | string) {
         boxShadow: "0 4px 12px rgba(0,0,0,.3)",
       }}
     >
+      <button
+        onClick={() => toast.dismiss(id)}
+        style={{
+          position: "absolute",
+          top: "-8px",
+          right: "-8px",
+          width: "20px",
+          height: "20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "50%",
+          border: "1px solid var(--color-border)",
+          background: "var(--color-card)",
+          color: "var(--color-muted-foreground)",
+          cursor: "pointer",
+          padding: 0,
+          lineHeight: 1,
+          fontSize: "12px",
+        }}
+        aria-label="Close"
+      >
+        ✕
+      </button>
       <div style={{ flexShrink: 0, marginTop: "1px" }}>
         <BellIcon />
       </div>
