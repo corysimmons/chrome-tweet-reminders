@@ -21,8 +21,17 @@ Set reminders on any tweet. Get desktop notifications when it's time to revisit.
 
 ## Install
 
+1. Download `chrome-tweet-reminders.zip` from the [latest release](https://github.com/corysimmons/chrome-tweet-reminders/releases/latest)
+2. Unzip it somewhere permanent (e.g. `~/chrome-tweet-reminders`)
+3. Go to `chrome://extensions`
+4. Enable **Developer mode** (toggle in the top-right)
+5. Click **Load unpacked** and select the unzipped folder
+6. Pin the extension from the puzzle-piece menu for easy access
+
+### Build from source
+
 ```bash
-git clone https://github.com/user/chrome-tweet-reminders.git
+git clone https://github.com/corysimmons/chrome-tweet-reminders.git
 cd chrome-tweet-reminders
 npm install && npm run build
 ```
