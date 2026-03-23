@@ -7,13 +7,12 @@ import {
   CalendarClock,
 } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+  BaseDialog,
+  BaseDialogPopup,
+  BaseDialogHeader,
+  BaseDialogTitle,
+  BaseDialogDescription,
+} from "@/components/ui/base-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { getPresets } from "@/shared/presets";
@@ -45,21 +44,21 @@ export function ReminderDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent container={container} className="bg-card border-border max-w-[340px] gap-3 p-5 overflow-hidden">
-        <DialogHeader className="gap-1 min-w-0">
-          <DialogTitle className="text-base">Set a reminder</DialogTitle>
-          <DialogDescription asChild>
+    <BaseDialog open={open} onOpenChange={onOpenChange}>
+      <BaseDialogPopup container={container} className="bg-card border-border max-w-[340px] gap-3 p-5 overflow-visible">
+        <BaseDialogHeader className="gap-1 min-w-0">
+          <BaseDialogTitle className="text-base">Set a reminder</BaseDialogTitle>
+          <BaseDialogDescription>
             <div className="text-xs text-muted-foreground">
               <span>{tweetData.authorHandle}</span>
               {tweetData.tweetText && (
-                <ScrollArea className="mt-1 max-h-[3.75rem]">
+                <div className="mt-1 max-h-40 overflow-y-auto">
                   <p className="text-muted-foreground/60 leading-relaxed">{tweetData.tweetText}</p>
-                </ScrollArea>
+                </div>
               )}
             </div>
-          </DialogDescription>
-        </DialogHeader>
+          </BaseDialogDescription>
+        </BaseDialogHeader>
 
         <div className="grid grid-cols-3 gap-1.5">
           {presets.map((preset, i) => {
@@ -82,7 +81,7 @@ export function ReminderDialog({
         <Separator />
 
         <DateTimePicker onSetReminder={onSetReminder} container={container} />
-      </DialogContent>
-    </Dialog>
+      </BaseDialogPopup>
+    </BaseDialog>
   );
 }

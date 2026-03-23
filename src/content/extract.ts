@@ -11,7 +11,7 @@ export function extractTweetData(articleEl: Element): TweetData {
 
   // Extract tweet text
   const textEl = articleEl.querySelector('[data-testid="tweetText"]');
-  const tweetText = textEl?.textContent?.slice(0, 280) || "";
+  const tweetText = textEl?.textContent || "";
 
   // Extract author handle from the tweet URL
   const authorHandle = tweetUrl
