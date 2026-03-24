@@ -1,0 +1,96 @@
+{
+  "name": "Tweet Reminders Cloud Migration",
+  "description": "Convert local-only Chrome extension to a cloud-backed product with auth, synced reminders, web push notifications, a dashboard, and a marketing page. Monorepo with pnpm, dockerized for Hetzner deployment.",
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Convert to pnpm monorepo",
+      "description": "Initialize pnpm workspace at repo root. Move existing extension code into apps/extension with its own package.json. Create apps/web for the Next.js app. Set up shared packages/types workspace for Reminder types shared between extension and web. Update all build scripts and ensure the extension still builds correctly from its new location.",
+      "relies_on": []
+    },
+    {
+      "id": 2,
+      "title": "Scaffold Next.js app",
+      "description": "Create apps/web as a Next.js 15 app with App Router, TypeScript, Tailwind CSS 4. Configure path aliases. This will host the API routes, marketing page, dashboard, and auth flows.",
+      "relies_on": [1]
+    },
+    {
+      "id": 3,
+      "title": "Shared types package",
+      "description": "Create packages/shared with the Reminder interface, API request/response types, and Web Push subscription types. Both apps/extension and apps/web import from this package. Migrate existing src/shared/types.ts here and extend with userId, server-side fields (e.g., Reminder gains a userId, drops notified which becomes client-side only).",
+      "relies_on": [1]
+    },
+    {
+      "id": 4,
+      "title": "Database schema and setup",
+      "description": "Set up a Postgres connection in apps/web using the pg library with a simple query helper. Define tables via hand-written SQL migrations in a migrations/ directory: users (id, email, created_at), reminders (id, user_id, tweet_url, tweet_id, tweet_text, author_handle, reminder_time, created_at), push_subscriptions (id, user_id, endpoint, p256dh, auth, created_at). Write a minimal migration runner script that applies .sql files in order. Write the initial 001_init.sql migration.",
+      "relies_on": [2]
+    },
+    {
+      "id": 5,
+      "title": "Authentication with better-auth + Resend magic links",
+      "description": "Install and configure better-auth in apps/web. Set up magic link provider using Resend for email delivery. Create auth API route handler at /api/auth/[...all]. Create login page at /login with email input for magic link. Configure session management. The extension will authenticate by opening the login page in a new tab and receiving the session token back.",
+      "relies_on": [4]
+    },
+    {
+      "id": 6,
+      "title": "Reminders CRUD API routes",
+      "description": "Create Next.js API routes: GET /api/reminders (list user's reminders), POST /api/reminders (create), DELETE /api/reminders/[id] (delete), PATCH /api/reminders/[id] (update, e.g. snooze). All routes require authenticated session. Validate inputs. Return proper error responses.",
+      "relies_on": [4, 5]
+    },
+    {
+      "id": 7,
+      "title": "Web Push notification infrastructure",
+      "description": "Generate VAPID keys and store as env vars. Create API route POST /api/push/subscribe to save user's push subscription to DB. Create API route DELETE /api/push/subscribe to unsubscribe. Build a server-side cron job or scheduled function that runs every minute, queries reminders due now, sends Web Push notifications via the web-push npm library, and marks them as notified in the DB.",
+      "relies_on": [4, 5]
+    },
+    {
+      "id": 8,
+      "title": "Extension auth flow",
+      "description": "Add login UI to the extension popup: show a 'Sign in' button when not authenticated. Clicking it opens the web app's /login page. After successful magic link auth, the web app passes the session back to the extension (via a /auth/extension callback page that posts the token to the extension using chrome.runtime messaging or a custom protocol). Store session token in chrome.storage.local. Add auth headers to all API calls from the extension.",
+      "relies_on": [5, 6]
+    },
+    {
+      "id": 9,
+      "title": "Extension reminder sync with API",
+      "description": "Replace chrome.storage.sync reminder CRUD in the background worker with API calls to the backend. On ADD_REMINDER, POST to API. On DELETE_REMINDER, DELETE to API. On GET_REMINDERS, GET from API. Keep a local cache in chrome.storage.local for offline resilience and fast reads. The extension still runs its 1-minute alarm to check for due reminders locally (belt and suspenders with server-side push).",
+      "relies_on": [6, 8]
+    },
+    {
+      "id": 10,
+      "title": "Extension push subscription registration",
+      "description": "When user logs in via the extension, register a Web Push subscription using the service worker's pushManager.subscribe() with the VAPID public key. Send the subscription to POST /api/push/subscribe. Handle push events in the service worker to show notifications (even when extension popup is closed).",
+      "relies_on": [7, 8]
+    },
+    {
+      "id": 11,
+      "title": "Require login before reminder creation",
+      "description": "Update the content script's reminder dialog. Before opening the reminder picker, check if the user is authenticated. If not, show a message: 'Sign in to set reminders' with a button that opens the login flow. Block reminder creation for unauthenticated users.",
+      "relies_on": [8, 9]
+    },
+    {
+      "id": 12,
+      "title": "Web dashboard for managing reminders",
+      "description": "Build an authenticated dashboard page at /dashboard. Show all user reminders sorted by due date. Display tweet text, author, time remaining/overdue status. Actions: delete reminder, snooze, open tweet. Reuse styling patterns from the extension popup. Protected route - redirect to /login if not authenticated.",
+      "relies_on": [5, 6]
+    },
+    {
+      "id": 13,
+      "title": "Marketing / landing page",
+      "description": "Build a public landing page at / that explains the product: set reminders on tweets, get push notifications, never lose reminders. Include: hero section, feature highlights (push notifications, cloud sync, works across devices), how-it-works steps, CTA to install the extension (link to Chrome Web Store or direct download), and a sign-in link for existing users.",
+      "relies_on": [2]
+    },
+    {
+      "id": 14,
+      "title": "Docker setup for Hetzner deployment",
+      "description": "Create Dockerfile for the Next.js app (multi-stage build, standalone output). Create docker-compose.yml at repo root with: postgres service (with volume for persistence), web service (Next.js app, depends on postgres), environment variables for DATABASE_URL, RESEND_API_KEY, VAPID keys, BETTER_AUTH_SECRET, etc. Add .env.example documenting all required vars.",
+      "relies_on": [2, 4, 7]
+    },
+    {
+      "id": 15,
+      "title": "Reminder notification cron worker",
+      "description": "Implement the server-side process that checks for due reminders and sends push notifications. This could be a Next.js cron route (if using Vercel-style), or more likely a simple setInterval in a custom server entry, or a separate lightweight worker process in Docker. Must handle: querying due reminders, sending web-push to all user subscriptions, marking reminders as server-notified, retry logic for failed pushes, cleaning up expired subscriptions.",
+      "relies_on": [7, 14]
+    }
+  ]
+}
